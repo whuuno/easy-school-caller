@@ -10,6 +10,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class ContactController {
 
     @Autowired
     RestTemplate restTemplate;
+
+    @Autowired
+    WebClient webClient;
 
     @GetMapping(path = "/getMessages")
     public List<Contact> getMessagesByStatus(@RequestParam("status") String status){
@@ -38,4 +43,14 @@ public class ContactController {
                 httpEntity,Response.class);
         return responseEntity;
     }
+
+   @PostMapping(path = "/saveMessage")
+   public Mono<Response> saveMessage(@RequestBody Contact contact){
+        String uri = "http://localhost:8080/api/contact/saveMsg";
+        return webClient.post().uri(uri)
+                .header("invocationFrom","WebClient")
+                .body(Mono.just(contact), Contact.class)
+                .retrieve()
+                .bodyToMono(Response.class);
+   }
 }
